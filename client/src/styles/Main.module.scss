@@ -1,0 +1,128 @@
+@import "colors";
+
+.main {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: $graylight;
+}
+
+.card {
+  $cardsize: 300px;
+  display: flex;
+  align-items: center;
+  // justify-content: center;
+  flex-direction: column;
+  background-color: white;
+  width: $cardsize;
+  text-align: center;
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.header {
+  background-color: $green;
+  color: white;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.room_list {
+  background-color: $green;
+  width: 110%;
+  color: white;
+  position: relative;
+  padding-bottom: 1.5rem;
+
+  .room {
+    display: flex;
+    justify-content: center;
+    cursor: pointer;
+    .title {
+      display: flex;
+      align-items: center;
+      background-color: $greendark;
+      color: white;
+      border: none;
+      font-size: 1.25rem;
+      width: 70%;
+      text-align: left;
+      padding: 0.5rem;
+      transition: all 0.3s;
+    }
+
+    .join {
+      background-color: $yellowish;
+      color: $greendark;
+      padding: 0.5rem;
+    }
+  }
+
+  .room:hover {
+    .title {
+      background-color: darken($greendark, 5);
+    }
+    .join {
+      background-color: darken($yellowish, 5);
+    }
+  }
+}
+
+.room_list::before {
+  $size: 10.5px;
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: -14px;
+  left: 6px;
+  width: 0;
+  height: 0;
+  border-top: $size solid transparent;
+  border-bottom: $size solid transparent;
+  border-left: $size solid $greendark;
+  background-color: transparent;
+  transform: rotate(-45deg);
+}
+.room_list::after {
+  $size: 10.5px;
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: -14px;
+  right: 6px;
+  width: 0;
+  height: 0;
+  border-top: $size solid transparent;
+  border-bottom: $size solid transparent;
+  border-left: $size solid $greendark;
+  background-color: transparent;
+  transform: rotate(225deg);
+}
+.other {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  .create {
+    display: flex;
+    justify-content: center;
+
+    .title {
+      background-color: $greendark;
+      color: white;
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+
+    .arrows {
+      color: white;
+      padding: 0.375rem;
+      background-color: $green;
+    }
+  }
+}
+

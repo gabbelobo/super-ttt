@@ -3,6 +3,7 @@ import socketIOClient from "socket.io-client";
 import { useHistory } from 'react-router'
 import { useAuth } from '../contexts/Auth'
 import styles from '../styles/Main.module.scss'
+import { MdCheck, MdPerson, MdKeyboardArrowRight } from 'react-icons/md'
 
 const socket = socketIOClient(process.env.REACT_APP_API_URL);
 
@@ -24,11 +25,12 @@ const Main = () => {
     socket.on("remove room", data => {
       setRooms(curr => curr.filter(item => item !== data))
     })
-    return () => socket.close()
+    return () => socket.disconnect()
   }, [])
 
-  const handleJoin = (e) => {
-    history.push('/room/' + e.target.id)
+  const handleJoin = (id) => {
+
+    history.push('/room/' + id)
   }
 
   const handleCreateRoom = () => {
@@ -36,21 +38,35 @@ const Main = () => {
   }
 
   return (
-    <div className={styles.room_list}>
-      <h1>Hi, {name}</h1>
-      <h2>Available rooms: </h2>
-      {rooms.length > 0 ?
-        rooms.map((item, index) => (
-          <div key={index}>
-            <button onClick={handleJoin} id={item}>{item}</button>
+    <div className={styles.main}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <h1>Hi, {name}</h1>
+        </div>
+        <div className={styles.room_list}>
+          <h2>Available rooms: </h2>
+          {rooms.length > 0 ?
+            rooms.map((item, index) => (
+              <div key={index} className={styles.room} onClick={()=>handleJoin(item)}>
+                <div className={styles.title}> <MdPerson /> {item}'s room </div>
+                <div className={styles.join}><MdCheck size="1.5em" /></div>
+              </div>
+            )) :
+            'No rooms!'
+          }
+
+        </div>
+        <div className={styles.other}>
+          <div className={styles.create}>
+            <div className={styles.title} onClick={handleCreateRoom}>CREATE ROOM</div>
+            <div className={styles.arrows}><MdKeyboardArrowRight size={"1.5em"}/></div>
           </div>
-        )) :
-        'No rooms!'
-      }
-      <div>
-        <button onClick={handleCreateRoom}>Create room</button>
+        </div>
+
       </div>
+
     </div>
+
   )
 }
 

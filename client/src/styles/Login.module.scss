@@ -72,7 +72,7 @@
   }
 
   input {
-    border-radius: 0;
+    border-radius: 5px 0 0 5px;
     border: 1px solid $greendark;
     padding: 0.4rem;
   }
@@ -82,6 +82,7 @@
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 0 5px 5px 0;
   }
 
   a {

@@ -43,6 +43,7 @@ io.on('connection', (socket) => {
     socket.join(roomid)
     socket.emit('joined', { roomid, owner: true })
     io.emit('new room', roomid)
+    console.log(name + ' created room ' + roomid);
   })
 
   socket.on("join", ({ room, name }) => {
@@ -67,16 +68,21 @@ io.on('connection', (socket) => {
     console.log("Client disconnected");
     if (!users[socket.id]) return
     let room = users[socket.id].room
+    if (socket.id in users) delete users[socket.id]
     let numUsers = 0
     Object.keys(users).forEach(key => {
       if (users[key].room === room) numUsers++
     })
-    if (numUsers > 0) {
+    console.log(numUsers);
+    if (numUsers === 0) {
       console.log('removing room');
       rooms = rooms.filter(item => item !== room)
       io.emit('remove room', room)
     }
-    if (socket.id in users) delete users[socket.id]
+    else if(numUsers === 1){
+      socket.broadcast.to(room).emit('p2 disconnect')
+    }
+    
   });
 });
 

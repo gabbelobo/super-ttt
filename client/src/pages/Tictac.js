@@ -5,7 +5,7 @@ import styles from '../styles/Tictac.module.scss'
 import checkResult from "../utils/checkResult";
 import { useParams } from 'react-router'
 import { useAuth } from '../contexts/Auth';
-const socket = socketIOClient(process.env.REACT_APP_API_URL);
+
 const Tictac = ({ newRoom }) => {
   const X = 'X'
   const O = 'O'
@@ -21,6 +21,7 @@ const Tictac = ({ newRoom }) => {
   const STARTING_PLAYER = O
   let { id } = useParams()
   const { name } = useAuth()
+  const [socket, setSocket] = useState(null)
   const [room, setRoom] = useState(null)
   const [grid, setGrid] = useState([...EMPTY_GRID])
   const [player, setPlayer] = useState(null)
@@ -34,9 +35,10 @@ const Tictac = ({ newRoom }) => {
   const [localPieces, setLocalPieces] = useState(DEFAULT_PIECES)
   const [netWorkPieces, setNetworkPieces] = useState(DEFAULT_PIECES)
   useEffect(() => {
-    newRoom ? createRoom() : handleJoin(id)
-
-    socket.on('joined', data => {
+    const newSocket = socketIOClient(process.env.REACT_APP_API_URL);
+    newRoom ? createRoom(newSocket) : handleJoin(id, newSocket)
+    setSocket(newSocket)
+    newSocket.on('joined', data => {
       setRoom(data.roomid)
       setPlayer2(data.partner)
       if (data.owner) {
@@ -50,19 +52,23 @@ const Tictac = ({ newRoom }) => {
       console.log('joined: ' + data.roomid + ' as ' + (data.owner ? O : X));
     })
 
-    socket.on("play", (data) => {
+    newSocket.on("play", (data) => {
       handleNetworkPlay(data)
     })
-    socket.on("replay", () => {
+    newSocket.on("replay", () => {
       console.log('replay');
       handlePlayAgain()
     })
 
-    socket.on('p2 join', name => {
+    newSocket.on('p2 join', name => {
       setPlayer2(name)
       setPlaying(true)
     })
-    return () => socket.close()
+
+    newSocket.on('p2 disconnect', () => {
+      resetRoom()
+    })
+    return () => newSocket.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -78,18 +84,45 @@ const Tictac = ({ newRoom }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grid])
 
-  const handleJoin = (room) => {
-    socket.emit('join', { room, name })
+  const handleJoin = (room, _socket) => {
+    _socket.emit('join', { room, name })
   }
 
-  const createRoom = () => {
-    socket.emit('create', name)
+  const createRoom = (_socket) => {
+    _socket.emit('create', name)
+  }
+
+  const resetRoom = () => {
+    console.log('reseting');
+    setGrid([['', '', ''], ['', '', ''], ['', '', '']])
+    setWinner(null)
+    setPlaying(false)
+    setOwner(true)
+    setPlayer(STARTING_PLAYER)
+    setCurrentPlayer(STARTING_PLAYER)
+    setPlayer2(null)
+    setLocalPieces([
+      { value: '3', index: '1' },
+      { value: '3', index: '2' },
+      { value: '2', index: '1' },
+      { value: '2', index: '2' },
+      { value: '1', index: '1' },
+      { value: '1', index: '2' },
+    ])
+    setNetworkPieces([
+      { value: '3', index: '1' },
+      { value: '3', index: '2' },
+      { value: '2', index: '1' },
+      { value: '2', index: '2' },
+      { value: '1', index: '1' },
+      { value: '1', index: '2' },
+    ])
   }
 
   const handlePlayAgain = () => {
 
     setGrid([['', '', ''], ['', '', ''], ['', '', '']])
-    setGrid([['', '', ''], ['', '', ''], ['', '', '']])
+    
     setWinner(null)
     setPlayer(current => {
       return (current === O ? X : O)
@@ -168,21 +201,16 @@ const Tictac = ({ newRoom }) => {
   return player2 ? (
 
     <div className={styles.main}>
-      <h1>Room: {room}</h1>
-      <h2>You {localScore} - {networkScore} {player2}</h2>
+      <div className={styles.header}>
+        {/* <h1 className={styles.big_title}>SUPER TIC TAC TOE</h1> */}
+        <h3>{room}'s room</h3>
+        <h3>You {localScore} - {networkScore} {player2}</h3>
+        {winner ?
+        <h3>{winner === 'TIE' ? 'Tie!' : (winner === player ? name : player2) + ' won!'}</h3> :
+        <h3>Current player is: {currentPlayer === player ? name : player2}</h3>}
+      </div>
 
-      {winner ?
-        <h2>{winner === 'TIE' ? 'Tie!' : (winner === player ? name : player2) + ' won!'}</h2> :
-        <h2>Current player is: {currentPlayer === player ? name : player2}</h2>}
-      {(!playing && owner) &&
-        <button
-          onClick={() => {
-            handlePlayAgain();
-            socket.emit('replay', 'nice')
-          }}
-        >
-          Play again
-        </button>}
+      
       {/* <div>
             {allMessages.map((msg, index) => <p key={index}>{msg}</p>)}
           </div>
@@ -193,33 +221,35 @@ const Tictac = ({ newRoom }) => {
       <DragDropContext onDragEnd={onDragEnd}>
         <div className={styles.pieces}>
           {netWorkPieces.map((piece, index) => (
-            <div key={index} className={styles.piece + ' ' + styles.network}>
+            <div key={index} className={`${styles.piece}  ${styles.network} ${styles['size-' + piece.value]}`} >
               {piece.value}
             </div>
           ))}
         </div>
-        <div className={styles.grid_container}>
-          {grid.map((row, rowIndex) => (
-            row.map((column, columnIndex) => (
-              <Droppable
-                droppableId={(rowIndex + ',' + columnIndex)}
-                key={rowIndex + '-' + columnIndex}>
-                {(provided) =>
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className={styles.grid_item}
-                  >
-                    <div className={`${column.value ? styles.piece : ''}  ${(column.player === player) ? styles.local : styles.network}`}>
-                      {column.value}
+        <div className={styles.grid_wrapper}>
+          <div className={styles.grid_container}>
+            {grid.map((row, rowIndex) => (
+              row.map((column, columnIndex) => (
+                <Droppable
+                  droppableId={(rowIndex + ',' + columnIndex)}
+                  key={rowIndex + '-' + columnIndex}>
+                  {(provided) =>
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.droppableProps}
+                      className={styles.grid_item}
+                    >
+                      <div className={`${column.value ? styles.piece : ''}  ${(column.player === player) ? styles.local : styles.network}`}>
+                        {column.value}
+                      </div>
+                      {provided.placeholder}
                     </div>
-                    {provided.placeholder}
-                  </div>
-                }
+                  }
 
-              </Droppable>
-            ))
-          ))}
+                </Droppable>
+              ))
+            ))}
+          </div>
         </div>
         <Droppable droppableId={'options'}>
           {(provided) =>
@@ -239,7 +269,7 @@ const Tictac = ({ newRoom }) => {
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className={`${styles.piece}`}
+                      className={`${styles.piece} ${styles['size-' + piece.value]}`}
                     >
                       {piece.value}
                     </div>
@@ -253,6 +283,16 @@ const Tictac = ({ newRoom }) => {
         </Droppable>
         {/* <button onClick={()=> console.log(localPieces.map(piece => piece.value + '-' + piece.index))}>Log pieces ids</button> */}
       </DragDropContext>
+      {(!playing && owner) &&
+        <button
+        className={styles.play_again}
+          onClick={() => {
+            handlePlayAgain();
+            socket.emit('replay', 'nice')
+          }}
+        >
+          Play again
+        </button>}
     </div >
   ) :
     <div className={styles.main}>

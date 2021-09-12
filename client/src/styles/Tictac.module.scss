@@ -1,27 +1,66 @@
+@import 'colors';
+
 .main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
+  height: 100vh;
+  justify-content: space-between;
+}
+
+.header {
+  color: white;
+  background-color: $greendark;
+  padding: 1rem 2rem;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  // flex-wrap: wrap;
+  h3 {
+    margin: 0.2rem;
+  }
+}
+
+.grid_wrapper {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: $green;
 }
 
 .grid_container {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-
   grid-template-rows: repeat(3, minmax(0, 1fr));
   // background-color: #2196F3;
-  width: 80vmin;
-  height: 80vmin;
+  width: 70vmin;
+  height: 70vmin;
   padding: 10px;
 }
 .grid_item{
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(0, 0, 0, 0.8);
+  // background-color: rgba(255, 255, 255, 0.8);
+  border: 3px solid white;
   font-size: 30px;
   text-align: center;
+}
+
+.grid_item:nth-child(3n-2){
+  border-left: none;
+}
+
+.grid_item:nth-child(3n){
+  border-right: none;
+}
+
+.grid_item:nth-child(-n+3){
+  border-top: none;
+}
+
+.grid_item:nth-last-child(-n+3){
+  border-bottom: none;
 }
 
 .room_list {
@@ -34,18 +73,52 @@
   display: flex;
   gap: 1rem;
   justify-content: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  max-width: 90vw;
+  margin: 1rem 0;
 }
 
+
 .piece {
-  width: 50px;
-  height: 50px;
+  width: 10vmin;
+  height: 10vmin;
   background-color: cornflowerblue;
   color: white;
   display: grid;
+  font-size: 1.4rem;
   place-items: center;
+  border-radius: 15px 15px 0 0 ;
+  font-weight: bold;
 }
+
+.piece.size-3 {
+  // transform: scale(1.2);
+  height: calc(10vmin * 1.2);
+  width: calc(10vmin * 1.2);;
+}
+
+.piece.size-1 {
+  height: calc(10vmin * 0.8);
+  width: calc(10vmin * 0.8);;
+}
+
 
 .piece.network {
   background-color: indianred;
 }
 
+.play_again {
+  background-color: $green;
+  color: white;
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  border: none;
+}
+
+@media screen and(max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: center;
+  }
+}
