@@ -1,0 +1,96 @@
+@import "colors";
+
+.login {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: $graylight;
+}
+
+.card {
+  $cardsize: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: white;
+  height: 300px;
+  width: $cardsize;
+  padding: 3em;
+  text-align: center;
+  position: relative;
+
+  .banner {
+    background-color: $green;
+    color: white;
+    position: absolute;
+    top: 10px;
+    width: 110%;
+    z-index: 20;
+  }
+
+  .banner::before {
+    $size: 10.5px;
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: -14px;
+    left: 6px;
+    width: 0;
+    height: 0;
+    border-top: $size solid transparent;
+    border-bottom: $size solid transparent;
+    border-left: $size solid $greendark;
+    background-color: transparent;
+    transform: rotate(-45deg);
+  }
+  .banner::after {
+    $size: 10.5px;
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: -14px;
+    right: 6px;
+    width: 0;
+    height: 0;
+    border-top: $size solid transparent;
+    border-bottom: $size solid transparent;
+    border-left: $size solid $greendark;
+    background-color: transparent;
+    transform: rotate(225deg);
+  }
+
+  label {
+    margin-top: 2rem;
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: $greendarker;
+  }
+
+  input {
+    border-radius: 0;
+    border: 1px solid $greendark;
+    padding: 0.4rem;
+  }
+  button {
+    height: 1.8rem;
+    background-color: $greendark;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  a {
+    position: absolute;
+    bottom: 1.5rem;
+    color: $gray;
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+}

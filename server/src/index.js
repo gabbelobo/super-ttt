@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
 });
 let rooms = []
 let users = {}
-app.get('/rooms', (req,res) => {
+app.get('/rooms', (req, res) => {
   res.send(rooms)
 })
 
@@ -36,44 +36,47 @@ io.on('connection', (socket) => {
     console.log(io.sockets.adapter.rooms);
   })
 
-  socket.on('create', ()=> {
-    const roomid = socket.id + '$'
+  socket.on('create', (name) => {
+    const roomid = name
     rooms.push(roomid)
-    users[socket.id] = roomid
+    users[socket.id] = { room: roomid, name }
     socket.join(roomid)
-    socket.emit('joined', {roomid, owner: true})
+    socket.emit('joined', { roomid, owner: true })
     io.emit('new room', roomid)
   })
 
-  socket.on("join", ({room}) => {
-    console.log(room);
+  socket.on("join", ({ room, name }) => {
+    console.log(name + ' joined room: ' +room);
     socket.join(room)
-    socket.emit('joined', {roomid: room, owner: false})
-    users[socket.id] = room
+    const partner = users[Object.keys(users).find(user => users[user].room === room)].name
+    console.log(partner);
+    socket.emit('joined', { roomid: room, owner: false, partner })
+    socket.broadcast.to(room).emit('p2 join', name)
+    users[socket.id] = { room, name }
   })
 
   socket.on("play", (data) => {
-    socket.broadcast.to(users[socket.id]).emit('play', data)
+    socket.broadcast.to(users[socket.id].room).emit('play', data)
   })
 
   socket.on("replay", (data) => {
-    socket.broadcast.to(users[socket.id]).emit('replay', data)
+    socket.broadcast.to(users[socket.id].room).emit('replay', data)
   })
 
   socket.on("disconnect", () => {
     console.log("Client disconnected");
-    
-    let room = users[socket.id]
+    if (!users[socket.id]) return
+    let room = users[socket.id].room
     let numUsers = 0
     Object.keys(users).forEach(key => {
-      if(users[key] === room ) numUsers++
+      if (users[key].room === room) numUsers++
     })
-    if(numUsers > 0) {
+    if (numUsers > 0) {
       console.log('removing room');
-      rooms = rooms.filter(item=> item !== room)
+      rooms = rooms.filter(item => item !== room)
       io.emit('remove room', room)
     }
-    if(socket.id in users) delete users[socket.id]
+    if (socket.id in users) delete users[socket.id]
   });
 });
 
